@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" ng-app = "mockApp">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.js"></script>
+    <script type="text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-mocks.js"></script>
+  </head>
+  <body ng-controller = "mockupCtrl"></body> 
+  <script type="text/javascript">
+
+    var mock = angular.module('backEndModule', ['ngMockE2E']);
+
+    mock.run(function(){
+
+    });
+
+    var app = angular.module('mockApp', []);
+
+  </script>
+
+</html>

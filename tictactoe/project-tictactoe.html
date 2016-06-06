@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html ng-app = "ticTacToe">
+<head>	
+	<title></title>
+	<script type="text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.js"></script>
+	<style type="text/css">
+		html, body{
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 1%;
+		}
+		
+		table{
+			font-family: arial;
+			font-size: 20px;
+		}
+
+		.grid{
+			margin: 0 auto;
+			width: 500px;
+			height: 500px;
+			margin-top: 5%;
+		}
+
+		.box{
+			width: 30%;
+			height: 30%;
+			display: block;
+			float: left;
+			text-align: center;
+			font-size: 50px;
+			font-family: arial;
+		}
+
+		.result{
+			font-size: 25px;
+		}
+
+		.center{
+			margin: 0 auto;
+		}
+
+		.entry{
+			text-align: center;
+			margin-top: 25%;
+		}
+
+		.border-right{
+			border-right: 2px solid gray;
+		}
+		.border-bottom{
+			border-bottom: 2px solid gray;
+		}
+		.border-left{
+			border-left: 2px solid gray;
+		}
+	</style>
+</head>
+<body ng-controller = "testCtrl">
+	<div class = "center">
+		<h1>Tic Tac Toe</h1>
+	</div>
+	<div data-grid class = "grid">
+		<table>
+			<tbody>
+				<tr>
+					<td>
+						Player X:
+					</td>
+					<td>
+						{{playerXScore}}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Player O:
+					</td>
+					<td>
+						{{playerOScore}}
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Draws:
+					</td>
+					<td>
+						{{draws}}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<br/><br/><br/>
+		<!-- Top Row -->
+		<span class = "box border-right border-bottom" ng-click = "move('top1')" ng-model = "view.top1">
+			<div class = "entry">					
+				{{view.top1}}
+			</div>
+		</span>
+		<span class = "box border-right border-bottom" ng-click = "move('top2')" ng-model = "view.top2">
+			<div class = "entry">
+				{{view.top2}}
+			</div>
+		</span>
+		<span class = "box border-bottom" ng-click = "move('top3')" ng-model = "view.top3">
+			<div class = "entry">
+				{{view.top3}}
+			</div>
+		</span>
+		<!-- Middle Row -->
+		<span class = "box border-right border-bottom" ng-click = "move('mid1')" ng-model = "view.mid1">
+			<div class = "entry">
+				{{view.mid1}}				
+			</div>
+		</span>
+		<span class = "box border-right border-bottom" ng-click = "move('mid2')" ng-model = "view.mid2">
+			<div class = "entry">
+				{{view.mid2}}
+			</div>
+		</span>
+		<span class = "box border-bottom" ng-click = "move('mid3')" ng-model = "view.mid3">
+			<div class = "entry">			
+				{{view.mid3}}
+			</div>
+		</span>
+		<!-- Bottom Row -->
+		<span class = "box border-right" ng-click = "move('bot1')" ng-model = "view.bot1">
+			<div class = "entry">
+				{{view.bot1}}
+			</div>
+		</span>
+		<span class = "box border-right" ng-click = "move('bot2')" ng-model = "view.bot2">
+			<div class = "entry">
+				{{view.bot2}}
+			</div>
+		</span>
+		<span class = "box" ng-click = "move('bot3')" ng-model = "view.bot3">
+			<div class = "entry">			
+				{{view.bot3}}
+			</div>
+		</span>
+		<div style = "clear:both; width: 100%; float:none;"></div>
+		<br/><br/>
+		<div class = "result">
+			{{winner}}
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+	var rules = angular.module('rules', []);
+
+	rules.service('rulesEngine', function(){
+
+		this.playerX 	= 'X';
+		this.playerO 	= 'O';
+		this.winner 	= null;
+		this.currentPlayersTurn = this.playerX;
+		var self = this;
+
+		//private function
+		var check = function(row){
+			//checks if the row provided is a winner
+			var shouldCalculate = row.every(function(item){
+				return item !== null;
+			});
+			if(shouldCalculate){
+				var reduce = row.reduce(function(prev, next){
+					return prev + next;
+				});
+				return {
+					gameOver 	: reduce === 0 ? true : reduce === 3 ? true : false,
+					winner 		: reduce === 0 ? self.playerO : reduce === 3 ? self.playerX : undefined
+				};
+			}
+			else{
+				return {
+					gameOver : false,
+					winner   : undefined
+				};
+			}
+		};
+
+		this.getCurrentPlayer = function(){
+			//Returns the current players turn
+			return this.currentPlayersTurn;
+		};
+
+		//public function
+		this.checkForWinner = function(board){
+			/*
+						0		1 		2
+				board = [null, null, null, 
+						3		4		5
+						null, null, null
+						6		7		8
+						null, null, null]
+			*/
+
+			var combinations = [
+				[].concat(board[0], board[1], board[2]), //horizontalTopRow 	0
+				[].concat(board[3], board[4], board[5]), //horizontalMidRow		1
+				[].concat(board[6], board[7], board[8]), //horizontalBotRow		2
+				[].concat(board[0], board[3], board[6]), //VerticalFirstRow		3
+				[].concat(board[1], board[4], board[7]), //VerticalSecondRow	4
+				[].concat(board[2], board[5], board[8]), //VerticalThirdRow		5
+				[].concat(board[0], board[4], board[8]), //DiagnolLR 			6
+				[].concat(board[2], board[4], board[6]), //DiagnolRL 			7
+			];
+
+			for(var i = 0; i < combinations.length; i++){
+				var combination = combinations[i];
+				var result 		= check(combination);
+				if(result.gameOver){
+					this.winner = result.winner;
+					return result.gameOver;
+				}
+			}
+
+			return false; //no winner found yet
+		};
+
+		this.getPlayerValue = function(currentPlayer){
+			//creates player value to set on board
+			if(currentPlayer === this.playerX){
+				return 1;
+			}
+			else{
+				return 0;
+			}
+		};
+
+		this.nextPlayersTurn = function(currentPlayer){
+			//changes the players turn
+			if(currentPlayer === this.playerX){
+				this.currentPlayersTurn = this.playerO;
+			}
+			else{
+				this.currentPlayersTurn = this.playerX;
+			}
+		};
+
+		this.getWinner = function(){
+			//provides if there is a winner
+			return this.winner;
+		};
+
+		this.checkForTie = function(board){
+			//checks board for draw
+			return board.every(function(space){
+				return space !== null;
+			});
+		};
+
+	});
+
+	var app = angular.module('ticTacToe', ['rules']);
+
+	app.controller('testCtrl', function($scope, $window, rulesEngine){
+		
+		$scope.showWinner = function(player){
+			$scope.winner = 'Player ' + player + ' has won!';
+		};
+
+		$scope.gameIsADraw = function(){
+			$scope.winner = 'Draw!';
+		};
+
+		$scope.defineBoard = function(){
+			$scope.top1 = null;
+			$scope.top2 = null;
+			$scope.top3 = null;
+			$scope.mid1 = null;
+			$scope.mid2 = null;
+			$scope.mid3 = null;
+			$scope.bot1 = null;
+			$scope.bot2 = null;
+			$scope.bot3 = null;
+			$scope.view = {
+				top1 : '',
+				top2 : '',
+				top3 : '',
+				mid1 : '',
+				mid2 : '',
+				mid3 : '',
+				bot1 : '',
+				bot2 : '',
+				bot3 : ''
+ 			};
+		};
+
+		$scope.getBoard = function(){
+			return [
+				$scope.top1,
+				$scope.top2,
+				$scope.top3,
+				$scope.mid1,
+				$scope.mid2,
+				$scope.mid3,
+				$scope.bot1,
+				$scope.bot2,
+				$scope.bot3
+			];
+		};
+
+		$scope.move = function(space){		
+			var player = rulesEngine.getCurrentPlayer();
+			switch(space){
+				case 'top1':
+				case 'top2':
+				case 'top3':
+				case 'mid1':
+				case 'mid2':
+				case 'mid3':
+				case 'bot1':
+				case 'bot2':
+				case 'bot3':
+					if($scope[space] === null){	
+						$scope[space] = rulesEngine.getPlayerValue(player);
+						$scope.view[space] = player;
+					}
+					break;
+				default:
+					throw new Error('space not defined');
+			}
+			var winnerFound = rulesEngine.checkForWinner($scope.getBoard());
+			if(winnerFound){
+				var winner = rulesEngine.getWinner();
+				$scope.showWinner(winner);
+				$window.setTimeout(function(){
+					$scope.startNewGame(true);
+				}, 1000);
+			}
+			else{
+				var gameIsADraw = rulesEngine.checkForTie($scope.getBoard());
+				if(gameIsADraw){
+					$scope.gameIsADraw();
+					$window.setTimeout(function(){
+						$scope.startNewGame(true);
+					}, 1000);
+				}
+			}			
+			rulesEngine.nextPlayersTurn(player);
+		};
+
+		$scope.startNewGame = function(reset){
+			$scope.defineBoard();
+			$scope.winner = '';
+			if(reset){
+				$scope.$digest();
+			}			
+		};
+
+		$scope.startNewGame();
+	});
+
+
+</script>
+</html>

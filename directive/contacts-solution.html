@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html ng-app = "myApp">
+<head>	
+	<title></title>
+	<script type="text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.js"></script>
+	<style type="text/css">
+		.contact{
+			width: 250px;
+			padding: 10px;
+			border: 1px solid #CCC;
+		}
+		.card{
+			padding: 20px;
+			border: 1px solid #CCC;
+			width: 300px;
+		}
+
+		.container{
+			width: 80%;
+			margin: 0 auto;
+		}
+
+		.searchBar{
+			width: 285px;
+		}
+	</style>
+</head>
+<body ng-controller = "testCtrl">
+	<div class = "container">
+		<h1>My Contacts</h1>
+		Search: <input class = "searchBar" type = "text" ng-model = "search"></input><br/><br/>
+		<div ng-repeat = "contact in contacts | filter: search">
+			<contact-card 
+				first = "contact.first" 
+				last = "contact.last" 
+				action = "makeCall(contact.phone)" 
+				show-number = "true" 
+				phone = "contact.phone"
+			>
+			</contact-card>		
+			<br/>
+		</div>		
+	</div>
+</body>
+<script type="text/javascript">
+
+	var element = angular.module('directives.contactCard', []);
+
+	element.directive('contactCard', function(){
+		return {
+			template 	: '<div class = "card">First: {{first}}<br/>Last: {{last}}<br/>Phone: {{number}}<br/><br/><br/><button ng-click = "action()">Call</button> <button ng-click = "favorited()">{{favoriteBtnLabel}}</button></div>',
+			restrict 	: 'EA',
+			scope		: {
+				first 		: '=',
+				last 		: '=',
+				phone 		: '=',
+				showNumber	: '@',
+				action 		: '&'
+			},
+			link : function(scope, element, attributes){
+				if(attributes.showNumber.toLowerCase() === 'true'){
+					scope.number = scope.phone;
+				}
+				else{
+					scope.number = '';
+				}
+			},
+			controller : function($scope){
+				$scope.isFavorite = false;
+				$scope.favoriteBtnLabel = 'Add to Favorites';
+				$scope.favorited = function(){
+					$scope.isFavorite = !$scope.isFavorite;
+					if($scope.isFavorite){
+						$scope.favoriteBtnLabel = 'Remove From Favorites';
+					}
+					else{
+						$scope.favoriteBtnLabel = 'Add to Favorites';
+					}
+				};
+			}
+		};	
+	});
+
+	var app = angular.module('myApp', ['directives.contactCard']);
+
+	app.controller('testCtrl', function($scope){
+		$scope.contacts = [
+			{
+				phone 	: '999-999-9999',
+				first 	: 'Patrick',
+				last 	: 'Traeger'
+			},
+			{
+				phone 	: '888-888-8888',
+				first 	: 'Janice',
+				last 	: 'Gingerich'
+			},
+			{
+				phone 	: '777-777-7777',
+				first 	: 'Greg',
+				last 	: 'Smith'
+			},
+			{
+				phone 	: '666-666-6666',
+				first 	: 'Lindsey',
+				last 	: 'Brown'
+			}
+		];
+		$scope.makeCall 	= function(number){
+			alert('dialing ' + number);
+		};
+	});
+
+</script>
+</html>

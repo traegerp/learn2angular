@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html ng-app = "roboApp">
+<head>
+  <title>Robo Generator</title>
+  <script type="text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.js"></script>
+  <script type="text/javascript" src = "https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-mocks.js"></script>
+  <link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700italic' rel='stylesheet' type='text/css'>
+  <style type="text/css">
+    html,body{
+      padding: 0;
+      margin: 0;
+      background: #39004d;
+      color: white;
+      font-family: 'Droid Serif', serif;
+    }
+    .large{
+      width: 50% !important;
+    }
+    .container{
+      width: 90%;
+      margin: 5%;
+    }
+
+    h1{
+      font-size: 50px;
+    }
+  </style>
+</head>
+<body ng-controller = "roboCtrl">
+  <div class = "container">
+      <div style = "margin: 0 auto; width: 800px;">
+        <img style = "float: left;"src="http://files.softicons.com/download/web-icons/character-icons-by-martin-berube/png/256x256/Robot.png">
+        <h1 style = "float: left; margin-top: 15%; margin-left: 3%;">Robo Generator</h1>        
+      </div>
+      <div style = "float: none; clear: both; width: 100%;"></div>
+      <br/><br/>
+      <div class="input-group large" style = "margin: 0 auto;">
+        <input type="text" class="form-control" placeholder="Generate Robot" name="srch-term" id="srch-term" style = "margin: 0 auto;" ng-model = "robot">
+        <div class="input-group-btn">
+          <button class="btn btn-default" ng-click = "generate()"><i class="glyphicon glyphicon-sunglasses"></i></button>
+        </div>
+      </div>
+      <br/><br/>
+      <div style = "margin: 0 auto; width: 500px;">
+        <div style = "float: left;">
+          <h2>{{robotName}}</h2>
+          <span id = "robotProfileImage"></span>          
+        </div>
+      </div>
+      <div style = "float:left; width: 500px;">
+          <br/><br/>
+          <p style = "color: white;">
+              {{id}}<br/>
+              {{make}}<br/>
+              {{model}}<br/>
+              {{chip}}<br/>
+              {{job}}<br/>            
+          </p>
+      </div>
+      <div style = "float: none; clear: both; width: 100%;"></div>
+ </div>
+</body>
+<script type="text/javascript">
+  var mock = angular.module('backEndModule', ['ngMockE2E']);
+
+  mock.run(function($httpBackend){
+    $httpBackend.whenRoute('GET', '/api/stats').respond(function(){
+      var chip = [
+        'pentium II',
+        'intel celeron',
+        'amd athlon 64',
+        'pentium IV'
+      ];
+
+      var job = [
+        'street sweeper',
+        'robo assassin',
+        'companion bot',
+        'factory robot',
+        'police driod',
+        'pizza delivery robot'
+      ];
+
+      return [200, {job: job[Math.floor(Math.random() * job.length)],id : Math.floor(Math.random() * 100000), chip : chip[Math.floor(Math.random() * chip.length)]}];
+    });
+
+    $httpBackend.whenRoute('GET', '/api/model').respond(function(){
+      var make = [
+        'Sony',
+        'Apple',
+        'MicroSoft'
+      ];
+      var model = [
+        'Megatron 5000',
+        'iRobot',
+        'ZX-10',
+        'Isamov 3000',
+        'Elon Musk 2'
+      ]
+      return [200, {make : make[Math.floor(Math.random() * make.length)], model : model[Math.floor(Math.random() * model.length)]}];
+    });
+
+  });  
+
+  var app = angular.module('roboApp', ['backEndModule']);
+
+  app.controller('roboCtrl', function($scope, $http, $q){
+
+    $scope.robot = '';
+
+    var generateRobotImage = function(text){
+      var deferred = $q.defer();
+      if(angular.isString(text)){
+        var image = new Image();
+        image.src = 'https://robohash.org/' + text;
+
+        var handleImage = function(){
+          document.getElementById('robotProfileImage').innerHTML = '';
+          document.getElementById('robotProfileImage').appendChild(image);                   
+        };
+
+        if(image.complete){
+          deferred.resolve();
+        }
+        else{
+          image.addEventListener('load', function(){
+            handleImage();
+            deferred.resolve();
+          });
+
+          image.addEventListener('error', function(){
+            deferred.reject();
+          });
+        }
+      }
+      else{
+        deferred.reject('robot name must be text');
+      }
+    };
+
+    $scope.generate = function(){
+      var robotImagePromise = generateRobotImage($scope.robot.replace(/\s/g, ''));
+      $q.all([robotImagePromise]).then(function(response){
+
+      });
+
+    };
+
+  });
+
+</script>
+</html>
